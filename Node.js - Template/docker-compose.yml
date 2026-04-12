@@ -1,0 +1,121 @@
+# Docker Compose services definition
+services:
+  # =========================
+  # API SERVICE (Node / Express)
+  # =========================
+  backend:
+    # Build the API image using the Dockerfile
+    # located in the current directory (.)
+    build: ./back
+
+    # Command that runs when the container starts
+    # This executes the "start" script from package.json
+    command: npm run start
+
+    # Map container port 3000 to host port 3002
+    # Allows access via http://localhost:3001
+    ports:
+      - "3001:3001"
+
+    # Load environment variables from .env file
+    # Used for DB_HOST, DB_USER, DB_PASS, etc.
+    env_file:
+      - .env
+
+    # Volume mounts
+    volumes:
+      # Mount project files from host into /app in container
+      # Enables hot reload when source code changes
+      - ./back:/app
+      - /app/node_modules
+
+    # Environment variables for file watching
+    # Required for reliable hot reload on Docker + Windows/macOS
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "300"
+      WATCHPACK_POLLING: "true"
+
+    # Ensure Postgres is fully ready before starting API
+    # Uses Postgres healthcheck status
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+ # =========================
+  # POSTGRES DATABASE SERVICE
+  # =========================
+  postgres:
+    # Use official PostgreSQL image (version 16, Alpine-based)
+    image: postgres:16-alpine
+
+    # Environment variables used by Postgres on first startup
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME} # Database name, database will be created if it doesn't exist
+
+    # Volumes for database persistence and initialization
+    volumes:
+      # Named volume to persist Postgres data
+      - pgdata:/var/lib/postgresql/data
+
+      # SQL file executed ONLY on first database creation
+      # Used to create tables (e.g. tours)
+      - ./back/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    # Healthcheck verifies Postgres is ready to accept connections
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # =========================
+  # PGADMIN SERVICE
+  # =========================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+
+    ports:
+      - "5050:80"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+# =========================
+# NAMED VOLUMES
+# =========================
+volumes:
+  # Persistent volume for Postgres data
+  # Data survives container restarts
+  pgdata:
+  pgadmin_data:
+
+    # Use it when you changed:
+    # Dockerfile
+    # package.json / package-lock.json
+    # system dependencies
+    # build steps
+    # base image (Node version, Alpine, etc.)
+
+    # docker compose up --build
+
+    # Use it when you changed:
+    # application code (with volumes / hot reload)
+    # environment variables
+    # docker-compose.yml (ports, env, depends_on)
+    # nothing at all (just restarting)
+
+    # docker compose up
+
+    # docker compose down -v       stops everything AND deletes all volumes (data).
+    # docker compose down          stops everything AND Postgres data stays
