@@ -2,7 +2,11 @@ npm install express dotenv postgres zod cookie-parser jsonwebtoken argon2
 
 npm install -D nodemon eslint @eslint/js eslint-config-prettier globals prettier
 
-npm install - parsius modulius
+Paleidimas:
+1. cd back
+2. npm install - parsius modulius
+3. cd ..
+4. docker compose up --build
 
 Paleisti serveri - npm run start
 
