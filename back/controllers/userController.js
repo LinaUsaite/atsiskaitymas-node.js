@@ -25,11 +25,13 @@ const sendTokenCookie = (token, res) => {
 //1. user signup
 exports.signup = async (req, res, next) => {
   try {
-    //nepamiršti validacijos ZOD
-    const { password } = req.validatedBody;
-
+    //is validuotu duomenu pasiimam pasword
+    const { password } = req.validatedBody; //{passwordConfirm, ...rest} jeigu nenorime siusti passwd confirm i db
+    
+    //hasinam password - 
     const passwordHash = await argon2.hash(password);
-
+   
+    //sukuriam nauja objekta
     const newUser = { ...req.validatedBody, password: passwordHash };
     //   console.log(newUser);
 
@@ -55,19 +57,19 @@ exports.login = async (req, res, next) => {
 
     const user = await getUserByEmail(email);
 
-    if (!user) throw new AppError("Invalid email or password", 401);
+    if (!user) throw new AppError("Invalid email or password", 401);//visada rasoma bendra zinute del saugumo
 
-    const passwordCorrect = await argon2.verify(user.password, password);
+    const passwordCorrect = await argon2.verify(user.password, password);//user.pasword-hash pass is db o password paprastas slaptazodis ir request
 
     if (!passwordCorrect) throw new AppError("Invalid email or password", 401);
 
-    const token = signToken(user.id);
+    const token = signToken(user.id);// sukuriamas jwt tokenas su user id
 
-    sendTokenCookie(token, res);
+    sendTokenCookie(token, res);//tokenas idedamas i cookie
 
-    user.password = undefined;
+    user.password = undefined;//pries grazinant response paslepiam password
 
-    res.status(201).json({
+    res.status(200).json({
       status: "success",
       data: user,
     });
@@ -85,20 +87,18 @@ exports.protect = async (req, res, next) => {
 
     if (!token) throw new AppError("You are not logged in!", 401);
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    {
-      id: 3;
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);//tikrinamas tokenas
+    
     // console.log(decoded);
-    const currentUser = await getUserByID(decoded.id);
+    const currentUser = await getUserByID(decoded.id);//surandam user pagal id kuris buvo tokene ir ar user dar egzistuoja
 
     if (!currentUser)
       throw new AppError(
-        "The user belonging ti this token does no longer exist",
+        "The user belonging to this token does no longer exist",
         401,
       );
 
-    req.user = currentUser;
+    req.user = currentUser;//i req idedam prisijungusi user
     next();
   } catch (error) {
     next(error);
@@ -107,7 +107,7 @@ exports.protect = async (req, res, next) => {
 
 // 4. authorization middleware
 
-exports.allowAccessTo = (...roles) => {
+exports.allowAccessTo = (...roles) => { //priima role masyva su dau reiksmiu
   return (req, res, next) => {
     try {
       if (!roles.includes(req.user.role)) {
@@ -122,6 +122,7 @@ exports.allowAccessTo = (...roles) => {
     }
   };
 };
+//pvz:router.delete("/books/:id", protect, allowAccessTo("admin"), deleteUser);
 
 exports.logout = (req, res) => {
   return res.clearCookie("jwt").status(200).json({

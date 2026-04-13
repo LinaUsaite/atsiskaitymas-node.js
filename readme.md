@@ -74,3 +74,48 @@ JWT_COOKIE_EXPIRES_IN = 90
 # Ignore artifacts:
 build
 coverage
+
+
+HTTP STATUS CODES CHEAT SHEET
+
+--- 2xx SUCCESS ---
+200 OK  
+→ Sėkminga užklausa (GET, login, update)
+
+201 Created  
+→ Sukurtas naujas resursas (signup, POST)
+
+204 No Content  
+→ Sėkminga, bet nieko negrąžina (DELETE)
+
+--- 4xx CLIENT ERRORS ---
+400 Bad Request  
+→ Blogi / neteisingi duomenys
+
+401 Unauthorized  
+→ Neprisijungęs (nėra arba blogas token)
+
+403 Forbidden  
+→ Prisijungęs, bet neturi teisių
+
+404 Not Found  
+→ Nerastas resursas (pvz. ID neegzistuoja)
+
+409 Conflict  
+→ Konfliktas (pvz. email jau egzistuoja)
+
+422 Unprocessable Entity  
+→ Validacijos klaida (pvz. Zod)
+
+--- 5xx SERVER ERRORS ---
+500 Internal Server Error  
+→ Serverio klaida (bug, DB problema)
+
+--- GREITA ATMINTINĖ ---
+GET → 200  
+LOGIN → 200  
+SIGNUP → 201  
+DELETE → 204  
+
+User klaida → 4xx  
+Server klaida → 5xx
