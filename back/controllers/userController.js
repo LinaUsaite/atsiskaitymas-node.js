@@ -51,7 +51,7 @@ exports.signup = async (req, res, next) => {
 //2.user login
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.validatedBody;
 
     const user = await getUserByEmail(email);
 
