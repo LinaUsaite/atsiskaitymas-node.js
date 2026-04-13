@@ -2,10 +2,7 @@ const app = require("./app");
 require("dotenv").config();
 const { sql, testConnection } = require("./db_Connection");
 
-
-
 const port = process.env.PORT;
-
 
 (async () => {
   try {

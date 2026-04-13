@@ -1,18 +1,29 @@
 const { z } = require("zod");
 
-const userSchema = z.object({
-  username: z
-    .string({
-      required_error: "Username is required",
-    })
-    .trim()
-    .min(3, "Username must be at least 3 characters long"),
+const UserSchema = z
+  .object({
+    username: z
+      .string({ error: "Name is required" })
+      .trim()
+      .min(1, { error: "Name cannot be empty" }),
 
-  password: z
-    .string({
-      required_error: "Password is required",
-    })
-    .min(6, "Password must be at least 6 characters long"),
-}).strict();
+    email: z
+      .string({ error: "Email is required" })
+      .email({ error: "Invalid email format" }),
 
-module.exports = userSchema;
+    password: z
+      .string({ error: "Password is required" })
+      .min(8, { error: "Password must be at least 8 characters" })
+      .regex(/[A-Z]/, { error: "Password must contain an uppercase letter" })
+      .regex(/[0-9]/, { error: "Password must contain a number" }),
+
+    passwordConfirm: z.string({
+      error: "Please confirm your password",
+    }),
+  })
+  // data is the entire parsed object being validated at that point.
+  .refine((data) => data.password === data.passwordConfirm, {
+    error: "Passwords do not match",
+  });
+
+module.exports = UserSchema;

@@ -1,18 +1,14 @@
 const { z } = require("zod");
 
 const loginSchema = z.object({
-  username: z
-    .string({
-      required_error: "Username is required",
-    })
+  email: z
+    .string({ error: "Email is required" })
     .trim()
-    .min(1, "Username is required"),
+    .email({ error: "Invalid email format" }),
 
   password: z
-    .string({
-      required_error: "Password is required",
-    })
-    .min(1, "Password is required"),
+    .string({ error: "Password is required" })
+    .min(1, { error: "Password is required" }),
 }).strict();
 
 module.exports = loginSchema;
