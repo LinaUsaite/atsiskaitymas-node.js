@@ -10,7 +10,7 @@ returning *
 
 exports.getUserByEmail = async (email) => {
   const users = await sql`
-  select * from users where email=${username}
+  select * from users where email=${email}
   `;
   return users[0];
 };
